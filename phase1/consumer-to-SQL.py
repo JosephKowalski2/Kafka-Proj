@@ -2,16 +2,16 @@ import getpass
 
 from kafka import KafkaConsumer, TopicPartition
 from json import loads
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, table, insert
 from sqlalchemy.ext.declarative import declarative_base
 
 
-password = getpass.getpass()
-engine = create_engine('mysql+pymysql://joe' + password + '@localhost/zipbank')
-Base = declarative_base()
+password = getpass.getpass(stream=None)
+engine = create_engine('mysql+pymysql://joe:' + password + '@localhost/zipbank')
+Base = declarative_base(bind=engine)
 
 class Transaction(Base):
-    __tablename__ = 'transaction'
+    __tablename__ = 'transactions'
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
@@ -44,6 +44,8 @@ class XactionConsumer:
             print('{} received'.format(message))
             self.ledger[message['custid']] = message
             # add message to the transaction table in your SQL usinf SQLalchemy
+            with engine.connect() as connection:
+                connection.execute('insert into transactions (custid, type, date, amt) values(%s, %s, %s, %s)', (message['custid'], message['type'], message['date'], message['amt']))
             if message['custid'] not in self.custBalances:
                 self.custBalances[message['custid']] = 0
             if message['type'] == 'dep':
@@ -55,5 +57,6 @@ class XactionConsumer:
 
 
 if __name__ == "__main__":
+    Base.metadata.create_all(engine)
     c = XactionConsumer()
     c.handleMessages()
