@@ -1,8 +1,7 @@
 import getpass
-
 from kafka import KafkaConsumer, TopicPartition
 from json import loads
-from sqlalchemy import create_engine, Column, Integer, String, table, insert
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
 database = 'zipbank'
