@@ -1,5 +1,7 @@
 from kafka import KafkaConsumer, TopicPartition
 from json import loads
+from statistics import mean, StatisticsError, stdev
+
 
 class XactionConsumer:
     def __init__(self):
@@ -16,6 +18,29 @@ class XactionConsumer:
         self.deposit = []
         self.withdrawal = []
 
+    def mean_deposits(self):
+        try:
+            return mean(self.deposit)
+        except StatisticsError:
+            return 0
+
+    def mean_withdrawals(self):
+        try:
+            return mean(self.withdrawal)
+        except StatisticsError:
+            return 0
+
+    def dev_deposits(self):
+        try:
+            return stdev(self.deposit)
+        except StatisticsError:
+            return 0
+
+    def dev_withdrawals(self):
+        try:
+            return stdev(self.withdrawal)
+        except StatisticsError:
+            return 0
 
     def handleMessages(self):
         for message in self.consumer:
@@ -30,9 +55,13 @@ class XactionConsumer:
             else:
                 self.custBalances[message['custid']] -= message['amt']
                 self.withdrawal.append(message['amt'])
-            print(self.custBalances)
-
-
+            # print(self.custBalances)
+            # print(self.deposit)
+            # print(self.withdrawal)
+            print('Mean of the deposits is: ' + str(round(XactionConsumer.mean_deposits(self), 2)))
+            print('Mean of the withdrawals is: ' + str(round(XactionConsumer.mean_withdrawals(self), 2)))
+            print('Standard deviation of deposits is: ' + str(round(XactionConsumer.dev_deposits(self), 2)))
+            print('Standard deviation of withdrawals is: ' + str(round(XactionConsumer.dev_withdrawals(self), 2)))
 
 if __name__ == "__main__":
     c = XactionConsumer()
