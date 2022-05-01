@@ -9,18 +9,18 @@ class Producer:
         self.producer = KafkaProducer(bootstrap_servers=['localhost:9092'], value_serializer=lambda m: dumps(m).encode('ascii'))
 
     def emit1(self, cust=55, type="dep"):
-        data = {'custid' : random.randint(50,56),
-            'type': self.depOrWth(),
+        data = {'custid': random.randint(50,56),
             'bankid': 1,
+            'type': self.depOrWth(),
             'date': int(time.time()),
             'amt': random.randint(10,101)*100,
             }
         return data
 
     def emit2(self, cust=55, type="dep"):
-        data = {'custid' : random.randint(50,56),
-            'type': self.depOrWth(),
+        data = {'custid': random.randint(50,56),
             'bankid': 2,
+            'type': self.depOrWth(),
             'date': int(time.time()),
             'amt': random.randint(10,101)*100,
             }
