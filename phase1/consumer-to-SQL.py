@@ -16,8 +16,8 @@ with db_engine.connect() as connect:
                     f'custid INTEGER, type VARCHAR(250) NOT NULL, '
                     f'date INTEGER, '
                     f'amt INTEGER)')
-engine = create_engine(f'mysql+pymysql://{user}:{password}@localhost/{database}')
-Base = declarative_base(bind=engine)
+#engine = create_engine(f'mysql+pymysql://{user}:{password}@localhost/zipbank', pool_pre_ping=True)
+Base = declarative_base(bind=db_engine)
 
 class XactionConsumer:
     def __init__(self):
@@ -43,8 +43,8 @@ class XactionConsumer:
             print('{} received'.format(message))
             self.ledger[message['custid']] = message
             # add message to the transaction table in your SQL usinf SQLalchemy
-            with engine.connect() as connection:
-                connection.execute('insert into transactions ({0}, {1}, {2}, {3})'.format(message['custid'], message['type'], message['date'], message['amt']))
+            with db_engine.connect() as connection:
+                connection.execute('insert into transactions (custid, type, date, amt) values(%s, %s, %s, %s)', (message['custid'], message['type'], message['date'], message['amt']))
             if message['custid'] not in self.custBalances:
                 self.custBalances[message['custid']] = 0
             if message['type'] == 'dep':
@@ -56,6 +56,6 @@ class XactionConsumer:
 
 
 if __name__ == "__main__":
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(db_engine)
     c = XactionConsumer()
     c.handleMessages()
